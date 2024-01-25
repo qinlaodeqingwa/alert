@@ -1,0 +1,29 @@
+alerts:
+  "update":
+    L1:
+      - name: "平台组件网盘不可用告警"
+        value: "1000000"
+      - name: "机器宕机"
+        value: "not_ready"
+    L2:
+      - name: "机器Load5"
+        value: 90
+    L2NoProd:
+      - name: ""
+  "delete":
+    L1:
+      - name: "机器CPU"
+        value: 90
+    L2:
+      - name: "平台组件实例内存状态"
+        value: 95
+
+#  "groups":
+#    L1:
+#      - name: "Erda-L1(勿删)"
+#        receiver: "https://kubeprober.erda.cloud/robot/send?access_token=a841f19df03cbb7d480627d2329d3ea7ff33516b7d8314c96cae571001b18cf8"
+#        secret: "SEC494e5597ad849f36c87be531d2472a0be3eb1fa25ae9dc2d4e343f82c933a0ad"
+#    L2:
+#      - name: "Erda-L2(勿删)"
+#        receiver: "https://kubeprober.erda.cloud/robot/send?access_token=44861bb01a06f1d676410a5d66f3c7ca98bfe4a5a783e69cd0c4a83cba26c9df"
+#        secret: "SEC7d7ab227054771565344a3727bc71798f7d98cda86b991c255cea347536cc47d"
