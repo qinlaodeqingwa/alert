@@ -5,32 +5,33 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
+	"os"
 )
 
 func ProcessTemplateAndData() (map[string]interface{}, map[string]interface{}, map[string]interface{}, error) {
 	templateL1 := map[string]interface{}{
-		//"name":   name,
-		//"domain": "https://dice.erda.cloud",
-		//"notifies": []map[string]interface{}{
-		//	{
-		//		"silence": map[string]interface{}{
-		//			"value":  15,
-		//			"unit":   "minutes",
-		//			"policy": "doubled",
-		//		},
-		//		"groupId":   notifyGroupID,
-		//		"groupType": "dingding",
-		//		"level":     "Fatal",
-		//	},
-		//},
-		//
-		//"triggerCondition": []map[string]interface{}{
-		//	{
-		//		"condition": "cluster_name",
-		//		"operator":  "in",
-		//		"values":    orgname,
-		//	},
-		//},
+		"name":   "Erda-L1(勿删)",
+		"domain": os.Getenv("Domain"),
+		"notifies": []map[string]interface{}{
+			{
+				"silence": map[string]interface{}{
+					"value":  15,
+					"unit":   "minutes",
+					"policy": "doubled",
+				},
+				"groupId":   os.Getenv("GroupId"),
+				"groupType": "dingding",
+				"level":     "Fatal",
+			},
+		},
+
+		"triggerCondition": []map[string]interface{}{
+			{
+				"condition": "cluster_name",
+				"operator":  "in",
+				"values":    os.Getenv("orgname"),
+			},
+		},
 		"rules": []map[string]interface{}{
 			{
 				"alertIndex": "dice_component_gfs_status",
@@ -804,6 +805,7 @@ func ProcessTemplateAndData() (map[string]interface{}, map[string]interface{}, m
 	data, err := ioutil.ReadFile("erdapi/test.yaml")
 	if err != nil {
 		log.Fatalf("Failed to read YAML file: %v", err)
+		return templateL1, templateL2Noprod, templateL2, nil
 	}
 
 	config := map[string]interface{}{}

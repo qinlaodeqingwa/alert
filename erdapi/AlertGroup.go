@@ -3,15 +3,13 @@ package erdapi
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 )
 
 type Data struct {
 	List []struct {
-		ID   string `json:"id"`
+		ID   int    `json:"id"`
 		Name string `json:"name"`
-		// 根据你的数据，可能还需要其他的字段
 	} `json:"list"`
 }
 
@@ -25,16 +23,15 @@ type Payload struct {
 	AccessibleAPIs       []map[string]string `json:"accessibleAPIs"`
 }
 
-func CheckAlertGroupExistence() (string, string, error) {
+func CheckAlertGroupExistence() (int, int, error) {
 	body, _ := RetrieveAlertGroups()
 	data := &Response{}
 	if err := json.Unmarshal(body, data); err != nil {
 		fmt.Println("JSON Unmarshal error:", err)
-		return "", "", err
+		return 0, 0, err
 	}
 
-	var erdaL1ID, erdaL2ID string
-	var err error
+	var erdaL1ID, erdaL2ID int
 	for _, item := range data.Data.List {
 		if item.Name == "Erda-L1(勿删)" {
 			erdaL1ID = item.ID
@@ -42,35 +39,12 @@ func CheckAlertGroupExistence() (string, string, error) {
 			erdaL2ID = item.ID
 		}
 	}
-
-	//ToDo 可以通过从yaml文件中获取钉钉得地址
-	if erdaL1ID == "" {
-		erdaL1ID, err = CreateAlertGroupsL1("Erda-L1(勿删)")
-		if err != nil {
-			fmt.Println("Unable to create Erda-L1: ", err)
-			return erdaL1ID, "", err
-		}
-	}
-	if erdaL2ID == "" {
-
-		erdaL2ID, err = CreateAlertGroupsL1("Erda-L2(勿删)")
-		if err != nil {
-			fmt.Println("Unable to create Erda-L2: ", err)
-			return "", erdaL2ID, err
-		}
-	}
-
 	return erdaL1ID, erdaL2ID, nil
 }
 
 func RetrieveAlertGroups() ([]byte, error) {
-	tokenUrl := Url("/oauth2/token", url.Values{
-		"grant_type":    {"client_credentials"},
-		"client_id":     {"pipeline"},
-		"client_secret": {"devops/pipeline"},
-	}, "")
 
-	accessToken, err := GetAccessToken(tokenUrl)
+	accessToken, err := GetAccessToken("/api/notify-groups")
 	if err != nil {
 		fmt.Println("Error on GetAccessToken:", err)
 	}

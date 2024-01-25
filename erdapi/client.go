@@ -47,8 +47,14 @@ func DoRequest(r Request) ([]byte, error) {
 }
 
 // GetAccessToken 获取token
-func GetAccessToken(url string) (string, error) {
-	//tokenURL := "https://openapi.erda.cloud/oauth2/token?grant_type=client_credentials&client_id=pipeline&client_secret=devops%2Fpipeline"
+func GetAccessToken(path string) (string, error) {
+	tokenUrl := "https://openapi.erda.cloud/oauth2/token?grant_type=client_credentials&client_id=pipeline&client_secret=devops%2Fpipeline"
+	//tokenUrl := Url("/oauth2/token", url.Values{
+	//	"grant_type":    {"client_credentials"},
+	//	"client_id":     {"pipeline"},
+	//	"client_secret": {"devops/pipeline"},
+	//}, "")
+
 	payloadData := Payload{
 		Metadata: map[string]string{
 			"Internal-Client": "bundle",
@@ -58,7 +64,7 @@ func GetAccessToken(url string) (string, error) {
 		AccessTokenExpiredIn: "0",
 		AccessibleAPIs: []map[string]string{
 			{
-				"path":   "/api/notify-groups",
+				"path":   path,
 				"method": "GET",
 				"schema": "http",
 			},
@@ -66,7 +72,7 @@ func GetAccessToken(url string) (string, error) {
 	}
 	respBody, err := DoRequest(Request{
 		Method: "POST",
-		URL:    url,
+		URL:    tokenUrl,
 		Header: map[string]string{"Content-Type": "application/json"},
 		Body:   payloadData,
 	})
@@ -82,12 +88,11 @@ func GetAccessToken(url string) (string, error) {
 	if !ok {
 		return "", errors.New("Access token not found in the response")
 	}
-
 	return accessToken, nil
 }
 
 func Url(p string, q url.Values, alarmId string) string {
-	BaseUrl := "https://openapi.erda.cloud"
+	BaseUrl := "https://dice.erda.cloud"
 	//BaseUrl := os.Getenv("OPENAPI_URL")
 	if BaseUrl == "" {
 		BaseUrl = "http://erda-server.default.svc.cluster.local:9529"
