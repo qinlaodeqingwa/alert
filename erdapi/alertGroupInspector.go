@@ -23,23 +23,23 @@ type AlertResponse struct {
 //}
 
 func CreateAlarm() {
-	alarmInfos, err := GetAlarmID()
-	if err != nil {
-		fmt.Println("Error getting alarm IDs: ", err)
-		return
-	}
+	alarmInfos := GetAlarmID()
+	//if err != nil {
+	//	fmt.Println("Error getting alarm IDs: ", err)
+	//	return
+	//}
 	for _, alarmInfo := range alarmInfos {
 		fmt.Printf("Alarm name: %s, ID: %s\n", alarmInfo.Name, alarmInfo.ID)
 	}
 
 }
 
-func GetAlarmID() ([]Alert, error) {
+func GetAlarmID() []Alert {
 	body, _ := RetrieveAlert()
 	data := &AlertResponse{}
 	if err := json.Unmarshal(body, data); err != nil {
 		fmt.Println("JSON Unmarshal error:", err)
-		return nil, err
+		return nil
 	}
 	names := map[string]bool{
 		"Erda-L1-prod(勿删)":   true,
@@ -53,12 +53,11 @@ func GetAlarmID() ([]Alert, error) {
 			alarms = append(alarms, Alert{ID: item.ID, Name: item.Name})
 		}
 	}
-	fmt.Println("the arm is ", alarms)
-	return alarms, nil
+	//fmt.Println("the arm is ", alarms)
+	return alarms
 }
 
 func RetrieveAlert() ([]byte, error) {
-
 	accessToken, err := GetAccessToken("/api/orgCenter/alerts")
 	if err != nil {
 		fmt.Println("Error on GetAccessToken:", err)

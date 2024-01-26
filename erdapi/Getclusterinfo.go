@@ -31,7 +31,7 @@ type CentralURLsConfig struct {
 	OpenAPIURL   string `yaml:"openapi"`
 }
 
-func GetClusterInfo(filename string) error {
+func GetDiceInfo(filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return fmt.Errorf("读取文件错误: %v", err)
