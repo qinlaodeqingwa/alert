@@ -1,6 +1,10 @@
 package erdapi
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+	"strings"
+)
 
 type GetClustersFunc func() []OrgInfo
 type GetAlarmInfo func() []Alert
@@ -20,11 +24,11 @@ func HandleClusterAndAlertGroups(getClusters GetClustersFunc, Alarm GetAlarmInfo
 			for _, group := range requiredAlertGroups {
 				if !Contains(alertGroups, group) {
 					fmt.Println("需要创建的告警组为 ", group)
-
 				}
 			}
 		} else {
 			fmt.Println("告警组数量满足要求，无需创建 ")
+
 		}
 	case 2:
 		fallthrough
@@ -34,6 +38,10 @@ func HandleClusterAndAlertGroups(getClusters GetClustersFunc, Alarm GetAlarmInfo
 			for _, group := range requiredAlertGroups {
 				if !Contains(alertGroups, group) {
 					fmt.Println("需要创建的告警组为 ", group)
+					err := CreateAlarmGroup(group)
+					if err != nil {
+						fmt.Println("创建失败", err)
+					}
 				}
 			}
 		} else {
@@ -50,4 +58,44 @@ func Contains(slice []Alert, item string) bool {
 	}
 	_, ok := set[item]
 	return ok
+}
+func CreateAlarmGroup(name string) error {
+	alertItemL1, alertItemL2NoProd, alertItemL2, err := ProcessTemplateAndData(name)
+	if err != nil {
+		return fmt.Errorf("处理模板和数据时出错: %w", err)
+	}
+
+	accessToken, _ := GetAccessToken("/api/orgCenter/alerts")
+	alertGroupUrl := Url("/api/orgCenter/alerts", nil, "")
+	template := getTemplate(name, alertItemL1, alertItemL2NoProd, alertItemL2)
+
+	if template != nil {
+		_, err := DoRequest(Request{
+			Method: "POST",
+			URL:    alertGroupUrl,
+			Header: map[string]string{"Content-Type": "application/json", "Authorization": "Bearer " + accessToken},
+			Body:   template,
+		})
+		if err != nil {
+			return fmt.Errorf("执行请求时出错: %w", err)
+		}
+	} else {
+		log.Println("找不到与以下内容匹配的模板: ", name)
+		return fmt.Errorf("找不到与 %v 相匹配的模板", name)
+	}
+
+	return nil
+}
+
+func getTemplate(name string, alertItemL1, alertItemL2NoProd, alertItemL2 map[string]interface{}) map[string]interface{} {
+	switch {
+	case strings.Contains(name, "L1"):
+		return alertItemL1
+	case strings.Contains(name, "L2-noprod"):
+		return alertItemL2NoProd
+	case strings.Contains(name, "L2"):
+		return alertItemL2
+	default:
+		return nil
+	}
 }

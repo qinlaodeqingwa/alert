@@ -6,8 +6,8 @@ import (
 	"os"
 )
 
-func CreateAlertGroupsL1() (int, error) {
-	alertGroupUrl := Url("/api/notify-groups", nil, "")
+func CreateNotifyGroupsL1() (int, error) {
+	notifyGroupUrl := Url("/api/notify-groups", nil, "")
 
 	args := os.Args
 	if len(args) != 2 {
@@ -31,7 +31,7 @@ func CreateAlertGroupsL1() (int, error) {
 	}
 	respBody, _ := DoRequest(Request{
 		Method: "POST",
-		URL:    alertGroupUrl,
+		URL:    notifyGroupUrl,
 		Header: map[string]string{"Content-Type": "application/json", "Authorization": "Bearer " + os.Getenv("Token")},
 		Body:   data,
 	})
@@ -48,9 +48,9 @@ func CreateAlertGroupsL1() (int, error) {
 
 	return dataValueL1, nil
 }
-func CreateAlertGroupsL2() (int, error) {
+func CreateNotifyGroupsL2() (int, error) {
 
-	alertGroupUrl := Url("/api/notify-groups", nil, "")
+	notifyGroupUrl := Url("/api/notify-groups", nil, "")
 
 	args := os.Args
 	if len(args) != 2 {
@@ -75,7 +75,7 @@ func CreateAlertGroupsL2() (int, error) {
 	}
 	respBody, _ := DoRequest(Request{
 		Method: "POST",
-		URL:    alertGroupUrl,
+		URL:    notifyGroupUrl,
 		Header: map[string]string{"Content-Type": "application/json", "Authorization": "Bearer " + os.Getenv("Token")},
 		Body:   data,
 	})

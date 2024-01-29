@@ -8,7 +8,33 @@ import (
 	"os"
 )
 
-func ProcessTemplateAndData() (map[string]interface{}, map[string]interface{}, map[string]interface{}, error) {
+type notifyGroup struct {
+	value int
+	//groupExist    func() ()
+	groupNotExist func() (int, error)
+}
+
+func ProcessTemplateAndData(name string) (map[string]interface{}, map[string]interface{}, map[string]interface{}, error) {
+	groupL1, groupL2, err := CheckNotifyGroupExistence()
+	if err != nil {
+		log.Println("获取告警组失败", err)
+	}
+	fmt.Println("the groupID is", groupL1, groupL2)
+
+	//检查通知组是否存在
+	notifyGroupCheckers := []*notifyGroup{
+		{value: groupL1, groupNotExist: CreateNotifyGroupsL1},
+		{value: groupL2, groupNotExist: CreateNotifyGroupsL2},
+	}
+	for _, check := range notifyGroupCheckers {
+		if err := check.Handle(); err != nil {
+			log.Println(err)
+		}
+	}
+	alarmclusterName, _ := GetAlarmCluster(name)
+	if alarmclusterName == "" {
+		alarmclusterName = os.Getenv("CLUSTER")
+	}
 	templateL1 := map[string]interface{}{
 		"name":   "Erda-L1(勿删)",
 		"domain": os.Getenv("Domain"),
@@ -19,17 +45,16 @@ func ProcessTemplateAndData() (map[string]interface{}, map[string]interface{}, m
 					"unit":   "minutes",
 					"policy": "doubled",
 				},
-				"groupId":   os.Getenv("GroupId"),
+				"groupId":   groupL1,
 				"groupType": "dingding",
 				"level":     "Fatal",
 			},
 		},
-
 		"triggerCondition": []map[string]interface{}{
 			{
 				"condition": "cluster_name",
 				"operator":  "in",
-				"values":    os.Getenv("orgname"),
+				"values":    alarmclusterName,
 			},
 		},
 		"rules": []map[string]interface{}{
@@ -260,28 +285,28 @@ func ProcessTemplateAndData() (map[string]interface{}, map[string]interface{}, m
 		},
 	}
 	templateL2Noprod := map[string]interface{}{
-		//"name":   name,
-		//"domain": "https://dice.erda.cloud",
-		//"notifies": []map[string]interface{}{
-		//	{
-		//		"silence": map[string]interface{}{
-		//			"value":  15,
-		//			"unit":   "minutes",
-		//			"policy": "doubled",
-		//		},
-		//		"groupId":   notifyGroupID,
-		//		"groupType": "dingding",
-		//		"level":     "Fatal",
-		//	},
-		//},
-		//
-		//"triggerCondition": []map[string]interface{}{
-		//	{
-		//		"condition": "cluster_name",
-		//		"operator":  "in",
-		//		"values":    orgname,
-		//	},
-		//},
+		"name":   "Erda_L2-noprod",
+		"domain": "https://dice.erda.cloud",
+		"notifies": []map[string]interface{}{
+			{
+				"silence": map[string]interface{}{
+					"value":  15,
+					"unit":   "minutes",
+					"policy": "doubled",
+				},
+				"groupId":   groupL2,
+				"groupType": "dingding",
+				"level":     "Fatal",
+			},
+		},
+
+		"triggerCondition": []map[string]interface{}{
+			{
+				"condition": "cluster_name",
+				"operator":  "in",
+				"values":    alarmclusterName,
+			},
+		},
 		"rules": []map[string]interface{}{
 			{
 				"alertIndex": "dice_component_gfs_status",
@@ -510,28 +535,28 @@ func ProcessTemplateAndData() (map[string]interface{}, map[string]interface{}, m
 		},
 	}
 	templateL2 := map[string]interface{}{
-		//"name":   name,
-		//"domain": "https://dice.erda.cloud",
-		//"notifies": []map[string]interface{}{
-		//	{
-		//		"silence": map[string]interface{}{
-		//			"value":  30,
-		//			"unit":   "minutes",
-		//			"policy": "doubled",
-		//		},
-		//		"groupId":   notifyGroupID,
-		//		"groupType": "dingding",
-		//		"level":     "Fatal",
-		//	},
-		//},
-		//
-		//"triggerCondition": []map[string]interface{}{
-		//	{
-		//		"condition": "cluster_name",
-		//		"operator":  "in",
-		//		"values":    orgname,
-		//	},
-		//},
+		"name":   "Erda-L2",
+		"domain": "https://dice.erda.cloud",
+		"notifies": []map[string]interface{}{
+			{
+				"silence": map[string]interface{}{
+					"value":  30,
+					"unit":   "minutes",
+					"policy": "doubled",
+				},
+				"groupId":   groupL2,
+				"groupType": "dingding",
+				"level":     "Fatal",
+			},
+		},
+
+		"triggerCondition": []map[string]interface{}{
+			{
+				"condition": "cluster_name",
+				"operator":  "in",
+				"values":    alarmclusterName,
+			},
+		},
 		"rules": []map[string]interface{}{
 			{
 				"alertIndex": "dice_component_flink_throughput",
@@ -841,4 +866,12 @@ func ProcessTemplateAndData() (map[string]interface{}, map[string]interface{}, m
 	}
 	return templateL1, templateL2, templateL2Noprod, nil
 
+}
+
+func (h *notifyGroup) Handle() error {
+	if h.value == 0 {
+		newID, _ := h.groupNotExist()
+		h.value = newID
+	}
+	return nil
 }

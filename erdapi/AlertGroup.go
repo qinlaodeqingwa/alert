@@ -23,7 +23,7 @@ type Payload struct {
 	AccessibleAPIs       []map[string]string `json:"accessibleAPIs"`
 }
 
-func CheckAlertGroupExistence() (int, int, error) {
+func CheckNotifyGroupExistence() (int, int, error) {
 	body, _ := RetrieveAlertGroups()
 	data := &Response{}
 	if err := json.Unmarshal(body, data); err != nil {
