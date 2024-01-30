@@ -6,10 +6,10 @@ import (
 	"strings"
 )
 
-var nameToGroupID = map[string]int{
-	"Erda-L1":        GroupIds.GroupL1,
-	"Erda-L2":        GroupIds.GroupL2,
-	"Erda-L2-noprod": GroupIds.GroupL2,
+var nameToGroupID = map[string]*int{
+	"Erda-L1-prod(勿删)":   &GroupIds.GroupL1,
+	"Erda-L2(勿删)":        &GroupIds.GroupL2,
+	"Erda-L2-noprod(勿删)": &GroupIds.GroupL2,
 }
 
 type GetClustersFunc func() []OrgInfo
@@ -29,7 +29,7 @@ func HandleClusterAndAlertGroups(getClusters GetClustersFunc, Alarm GetAlarmInfo
 			fmt.Println("未满足要求，需要创建缺失的告警组 ")
 			for _, group := range requiredAlertGroups {
 				if !Contains(alertGroups, group) {
-					fmt.Println("需要创建的告警组为 ", group)
+					fmt.Println("1需要创建的告警组为 ", group)
 					err := CreateAlarmGroup(group)
 					if err != nil {
 						fmt.Println(err)
@@ -46,7 +46,7 @@ func HandleClusterAndAlertGroups(getClusters GetClustersFunc, Alarm GetAlarmInfo
 			fmt.Println("未满足要求，需要创建缺失的告警组 ")
 			for _, group := range requiredAlertGroups {
 				if !Contains(alertGroups, group) {
-					fmt.Println("需要创建的告警组为 ", group)
+					fmt.Println("2需要创建的告警组为 ", group)
 					err := CreateAlarmGroup(group)
 					if err != nil {
 						fmt.Println("创建失败", err)
@@ -72,8 +72,10 @@ func Contains(slice []Alert, item string) bool {
 
 func CreateAlarmGroup(name string) error {
 	var notifyid int
+	fmt.Println("Before check name is ", *nameToGroupID[name])
 	if groupID, ok := nameToGroupID[name]; ok {
-		notifyid = groupID
+		notifyid = *groupID
+		log.Println(notifyid)
 	}
 	alertItemL1, alertItemL2NoProd, alertItemL2, err := ProcessTemplateAndData(name, notifyid)
 	if err != nil {
@@ -81,7 +83,8 @@ func CreateAlarmGroup(name string) error {
 	}
 
 	accessToken, _ := GetAccessToken("/api/orgCenter/alerts", "POST")
-	alertGroupUrl := Url("/api/orgCenter/alerts", nil, "")
+	alertGroupUrl := "https://dice.erda.cloud/api/hyjtsc/orgCenter/alerts"
+	//alertGroupUrl := Url("/api/orgCenter/alerts", nil, "")
 	template := getTemplate(name, alertItemL1, alertItemL2NoProd, alertItemL2)
 
 	if template != nil {
@@ -92,13 +95,12 @@ func CreateAlarmGroup(name string) error {
 			Body:   template,
 		})
 		if err != nil {
-			return fmt.Errorf("执行请求时出错: %w", err)
+			fmt.Println("执行请求时出错: %w", err)
 		}
 	} else {
 		log.Println("找不到与以下内容匹配的模板: ", name)
 		return fmt.Errorf("找不到与 %v 相匹配的模板", name)
 	}
-
 	return nil
 }
 

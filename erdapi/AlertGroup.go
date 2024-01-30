@@ -3,6 +3,7 @@ package erdapi
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -44,28 +45,32 @@ func CheckNotifyGroupExistence() (int, int, error) {
 		return 0, 0, err
 	}
 
-	var notifyL1Id, notifyL2Id int
 	for _, item := range data.Data.List {
 		if item.Name == "Erda-L1(勿删)" {
-			notifyL1Id = item.ID
+			GroupIds.GroupL1 = item.ID
 		} else if item.Name == "Erda-L2(勿删)" {
-			notifyL2Id = item.ID
+			GroupIds.GroupL2 = item.ID
 		}
 	}
+
 	notifyGroupCheckers := []*notifyGroup{
-		{value: notifyL1Id, groupNotExist: CreateNotifyGroupsL1},
-		{value: notifyL2Id, groupNotExist: CreateNotifyGroupsL2},
+		{value: GroupIds.GroupL1, groupNotExist: CreateNotifyGroupsL1},
+		{value: GroupIds.GroupL2, groupNotExist: CreateNotifyGroupsL2},
 	}
 	for i, check := range notifyGroupCheckers {
-		newID := check.Handle()
-		if i == 0 {
-			GroupIds.GroupL1 = newID
-		} else if i == 1 {
-			GroupIds.GroupL2 = newID
+		newID, err := check.Handle()
+		if err != nil {
+			log.Println(err)
+		} else {
+			if i == 0 {
+				GroupIds.GroupL1 = newID
+			} else if i == 1 {
+				GroupIds.GroupL2 = newID
+			}
 		}
 	}
-	return notifyL1Id, notifyL2Id, nil
-
+	fmt.Println("the notify id is ", GroupIds)
+	return GroupIds.GroupL1, GroupIds.GroupL2, nil
 }
 
 func RetrieveAlertGroups() ([]byte, error) {
@@ -92,11 +97,15 @@ func RetrieveAlertGroups() ([]byte, error) {
 
 	return respBody, nil
 }
-func (h *notifyGroup) Handle() int {
+
+func (h *notifyGroup) Handle() (int, error) {
 	if h.value == 0 {
-		newID, _ := h.groupNotExist()
+		newID, err := h.groupNotExist()
+		if err != nil {
+			return 0, err
+		}
 		h.value = newID
-		return newID
+		return newID, nil
 	}
-	return h.value
+	return h.value, nil
 }

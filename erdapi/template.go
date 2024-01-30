@@ -279,7 +279,7 @@ func ProcessTemplateAndData(alarmclusterName string, groupId int) (map[string]in
 			{
 				"condition": "cluster_name",
 				"operator":  "in",
-				"values":    alarmclusterName,
+				"values":    "hyjtsc-prod",
 			},
 		},
 		"rules": []map[string]interface{}{
@@ -802,9 +802,9 @@ func ProcessTemplateAndData(alarmclusterName string, groupId int) (map[string]in
 		},
 	}
 
-	data, err := ioutil.ReadFile("erdapi/test.yaml")
+	data, err := ioutil.ReadFile("test/erdapi/test.yaml")
 	if err != nil {
-		log.Fatalf("Failed to read YAML file: %v", err)
+		fmt.Println("Failed to read YAML file: %v", err)
 		return templateL1, templateL2Noprod, templateL2, nil
 	}
 
