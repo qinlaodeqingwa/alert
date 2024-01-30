@@ -6,18 +6,19 @@ import (
 	"updata_alerm/erdapi"
 )
 
-type notifyGroup struct {
-	value int
-	//groupExist    func() ()
-	groupNotExist func() (int, error)
-}
-
-type NotifyGroupIds struct {
-	GroupL1 int
-	GroupL2 int
-}
-
-var GroupIds NotifyGroupIds
+//
+//type notifyGroup struct {
+//	value int
+//	//groupExist    func() ()
+//	groupNotExist func() (int, error)
+//}
+//
+//type NotifyGroupIds struct {
+//	GroupL1 int
+//	GroupL2 int
+//}
+//
+//var GroupIds NotifyGroupIds
 
 func main() {
 	//获取环境的一些参数
@@ -33,18 +34,18 @@ func main() {
 		log.Println("获取告警组失败", err)
 	}
 	//告警通知组ID获取和创建
-	notifyGroupCheckers := []*notifyGroup{
-		{value: groupL1, groupNotExist: erdapi.CreateNotifyGroupsL1},
-		{value: groupL2, groupNotExist: erdapi.CreateNotifyGroupsL2},
-	}
-	for i, check := range notifyGroupCheckers {
-		newID := check.Handle()
-		if i == 0 {
-			GroupIds.GroupL1 = newID
-		} else if i == 1 {
-			GroupIds.GroupL2 = newID
-		}
-	}
+	//notifyGroupCheckers := []*notifyGroup{
+	//	{value: groupL1, groupNotExist: erdapi.CreateNotifyGroupsL1},
+	//	{value: groupL2, groupNotExist: erdapi.CreateNotifyGroupsL2},
+	//}
+	//for i, check := range notifyGroupCheckers {
+	//	newID := check.Handle()
+	//	if i == 0 {
+	//		GroupIds.GroupL1 = newID
+	//	} else if i == 1 {
+	//		GroupIds.GroupL2 = newID
+	//	}
+	//}
 	fmt.Println("the groupID is", groupL1, groupL2)
 	////告警的获取
 	//alarmInfos := erdapi.GetAlarmID()
@@ -63,11 +64,12 @@ func main() {
 	erdapi.HandleClusterAndAlertGroups(erdapi.GetCluster, erdapi.GetAlarmID)
 
 }
-func (h *notifyGroup) Handle() int {
-	if h.value == 0 {
-		newID, _ := h.groupNotExist()
-		h.value = newID
-		return newID
-	}
-	return h.value
-}
+
+//func (h *notifyGroup) Handle() int {
+//	if h.value == 0 {
+//		newID, _ := h.groupNotExist()
+//		h.value = newID
+//		return newID
+//	}
+//	return h.value
+//}

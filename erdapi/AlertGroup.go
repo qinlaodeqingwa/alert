@@ -6,6 +6,19 @@ import (
 	"os"
 )
 
+type notifyGroup struct {
+	value int
+	//groupExist    func() ()
+	groupNotExist func() (int, error)
+}
+
+type NotifyGroupIds struct {
+	GroupL1 int
+	GroupL2 int
+}
+
+var GroupIds NotifyGroupIds
+
 type Data struct {
 	List []struct {
 		ID   int    `json:"id"`
@@ -31,15 +44,27 @@ func CheckNotifyGroupExistence() (int, int, error) {
 		return 0, 0, err
 	}
 
-	var erdaL1ID, erdaL2ID int
+	var notifyL1Id, notifyL2Id int
 	for _, item := range data.Data.List {
 		if item.Name == "Erda-L1(勿删)" {
-			erdaL1ID = item.ID
+			notifyL1Id = item.ID
 		} else if item.Name == "Erda-L2(勿删)" {
-			erdaL2ID = item.ID
+			notifyL2Id = item.ID
 		}
 	}
-	return erdaL1ID, erdaL2ID, nil
+	notifyGroupCheckers := []*notifyGroup{
+		{value: notifyL1Id, groupNotExist: CreateNotifyGroupsL1},
+		{value: notifyL2Id, groupNotExist: CreateNotifyGroupsL2},
+	}
+	for i, check := range notifyGroupCheckers {
+		newID := check.Handle()
+		if i == 0 {
+			GroupIds.GroupL1 = newID
+		} else if i == 1 {
+			GroupIds.GroupL2 = newID
+		}
+	}
+	return notifyL1Id, notifyL2Id, nil
 
 }
 
@@ -66,4 +91,12 @@ func RetrieveAlertGroups() ([]byte, error) {
 	})
 
 	return respBody, nil
+}
+func (h *notifyGroup) Handle() int {
+	if h.value == 0 {
+		newID, _ := h.groupNotExist()
+		h.value = newID
+		return newID
+	}
+	return h.value
 }

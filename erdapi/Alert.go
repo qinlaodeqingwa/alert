@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-var nameToGroupID = map[string]string{
+var nameToGroupID = map[string]int{
 	"Erda-L1":        GroupIds.GroupL1,
 	"Erda-L2":        GroupIds.GroupL2,
 	"Erda-L2-noprod": GroupIds.GroupL2,
@@ -71,12 +71,11 @@ func Contains(slice []Alert, item string) bool {
 }
 
 func CreateAlarmGroup(name string) error {
-	if name == "Erda-L1" {
-		groupID := groupIds.GroupL1
-	} else if name == "Erda-L2" || name == "Erda-L2-noprod" {
-		groupIds.GroupL2
+	var notifyid int
+	if groupID, ok := nameToGroupID[name]; ok {
+		notifyid = groupID
 	}
-	alertItemL1, alertItemL2NoProd, alertItemL2, err := ProcessTemplateAndData(name, groupID)
+	alertItemL1, alertItemL2NoProd, alertItemL2, err := ProcessTemplateAndData(name, notifyid)
 	if err != nil {
 		return fmt.Errorf("处理模板和数据时出错: %w", err)
 	}

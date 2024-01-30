@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func ProcessTemplateAndData(alarmclusterName, groupId string) (map[string]interface{}, map[string]interface{}, map[string]interface{}, error) {
+func ProcessTemplateAndData(alarmclusterName string, groupId int) (map[string]interface{}, map[string]interface{}, map[string]interface{}, error) {
 
 	templateL1 := map[string]interface{}{
 		"name":   "Erda-L1(勿删)",
