@@ -52,7 +52,7 @@ func GetOrgId(orgname string) (int, error) {
 func GetOrg() ([]byte, error) {
 	OrgUrl := Url("/api/orgs", nil, "")
 
-	accessToken, err := GetAccessToken("/api/orgs")
+	accessToken, err := GetAccessToken("/api/orgs", "GET")
 	if err != nil {
 		fmt.Println("Error on GetAccessToken:", err)
 	}

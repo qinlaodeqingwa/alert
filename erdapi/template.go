@@ -8,33 +8,8 @@ import (
 	"os"
 )
 
-type notifyGroup struct {
-	value int
-	//groupExist    func() ()
-	groupNotExist func() (int, error)
-}
+func ProcessTemplateAndData(alarmclusterName, groupId string) (map[string]interface{}, map[string]interface{}, map[string]interface{}, error) {
 
-func ProcessTemplateAndData(name string) (map[string]interface{}, map[string]interface{}, map[string]interface{}, error) {
-	groupL1, groupL2, err := CheckNotifyGroupExistence()
-	if err != nil {
-		log.Println("获取告警组失败", err)
-	}
-	fmt.Println("the groupID is", groupL1, groupL2)
-
-	//检查通知组是否存在
-	notifyGroupCheckers := []*notifyGroup{
-		{value: groupL1, groupNotExist: CreateNotifyGroupsL1},
-		{value: groupL2, groupNotExist: CreateNotifyGroupsL2},
-	}
-	for _, check := range notifyGroupCheckers {
-		if err := check.Handle(); err != nil {
-			log.Println(err)
-		}
-	}
-	alarmclusterName, _ := GetAlarmCluster(name)
-	if alarmclusterName == "" {
-		alarmclusterName = os.Getenv("CLUSTER")
-	}
 	templateL1 := map[string]interface{}{
 		"name":   "Erda-L1(勿删)",
 		"domain": os.Getenv("Domain"),
@@ -45,7 +20,7 @@ func ProcessTemplateAndData(name string) (map[string]interface{}, map[string]int
 					"unit":   "minutes",
 					"policy": "doubled",
 				},
-				"groupId":   groupL1,
+				"groupId":   groupId,
 				"groupType": "dingding",
 				"level":     "Fatal",
 			},
@@ -294,7 +269,7 @@ func ProcessTemplateAndData(name string) (map[string]interface{}, map[string]int
 					"unit":   "minutes",
 					"policy": "doubled",
 				},
-				"groupId":   groupL2,
+				"groupId":   groupId,
 				"groupType": "dingding",
 				"level":     "Fatal",
 			},
@@ -544,7 +519,7 @@ func ProcessTemplateAndData(name string) (map[string]interface{}, map[string]int
 					"unit":   "minutes",
 					"policy": "doubled",
 				},
-				"groupId":   groupL2,
+				"groupId":   groupId,
 				"groupType": "dingding",
 				"level":     "Fatal",
 			},
@@ -866,12 +841,4 @@ func ProcessTemplateAndData(name string) (map[string]interface{}, map[string]int
 	}
 	return templateL1, templateL2, templateL2Noprod, nil
 
-}
-
-func (h *notifyGroup) Handle() error {
-	if h.value == 0 {
-		newID, _ := h.groupNotExist()
-		h.value = newID
-	}
-	return nil
 }

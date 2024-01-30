@@ -40,11 +40,12 @@ func CheckNotifyGroupExistence() (int, int, error) {
 		}
 	}
 	return erdaL1ID, erdaL2ID, nil
+
 }
 
 func RetrieveAlertGroups() ([]byte, error) {
 
-	accessToken, err := GetAccessToken("/api/notify-groups")
+	accessToken, err := GetAccessToken("/api/notify-groups", "GET")
 	if err != nil {
 		fmt.Println("Error on GetAccessToken:", err)
 	}

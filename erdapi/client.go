@@ -47,7 +47,7 @@ func DoRequest(r Request) ([]byte, error) {
 }
 
 // GetAccessToken 获取token
-func GetAccessToken(path string) (string, error) {
+func GetAccessToken(path, fangsh string) (string, error) {
 	tokenUrl := "https://openapi.erda.cloud/oauth2/token?grant_type=client_credentials&client_id=pipeline&client_secret=devops%2Fpipeline"
 	//tokenUrl := Url("/oauth2/token", url.Values{
 	//	"grant_type":    {"client_credentials"},
@@ -65,7 +65,7 @@ func GetAccessToken(path string) (string, error) {
 		AccessibleAPIs: []map[string]string{
 			{
 				"path":   path,
-				"method": "GET",
+				"method": fangsh,
 				"schema": "http",
 			},
 		},

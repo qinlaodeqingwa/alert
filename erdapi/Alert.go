@@ -6,6 +6,12 @@ import (
 	"strings"
 )
 
+var nameToGroupID = map[string]string{
+	"Erda-L1":        GroupIds.GroupL1,
+	"Erda-L2":        GroupIds.GroupL2,
+	"Erda-L2-noprod": GroupIds.GroupL2,
+}
+
 type GetClustersFunc func() []OrgInfo
 type GetAlarmInfo func() []Alert
 
@@ -24,11 +30,14 @@ func HandleClusterAndAlertGroups(getClusters GetClustersFunc, Alarm GetAlarmInfo
 			for _, group := range requiredAlertGroups {
 				if !Contains(alertGroups, group) {
 					fmt.Println("需要创建的告警组为 ", group)
+					err := CreateAlarmGroup(group)
+					if err != nil {
+						fmt.Println(err)
+					}
 				}
 			}
 		} else {
-			fmt.Println("告警组数量满足要求，无需创建 ")
-
+			fmt.Println("告警组数量满足要求，无需创建，开始更新告警项 ")
 		}
 	case 2:
 		fallthrough
@@ -45,7 +54,8 @@ func HandleClusterAndAlertGroups(getClusters GetClustersFunc, Alarm GetAlarmInfo
 				}
 			}
 		} else {
-			fmt.Println("告警组数量满足要求，无需创建 ")
+			fmt.Println("告警组数量满足要求，无需创建 可以选择更新了 ")
+			UpdateAlarm()
 		}
 	}
 }
@@ -59,13 +69,19 @@ func Contains(slice []Alert, item string) bool {
 	_, ok := set[item]
 	return ok
 }
+
 func CreateAlarmGroup(name string) error {
-	alertItemL1, alertItemL2NoProd, alertItemL2, err := ProcessTemplateAndData(name)
+	if name == "Erda-L1" {
+		groupID := groupIds.GroupL1
+	} else if name == "Erda-L2" || name == "Erda-L2-noprod" {
+		groupIds.GroupL2
+	}
+	alertItemL1, alertItemL2NoProd, alertItemL2, err := ProcessTemplateAndData(name, groupID)
 	if err != nil {
 		return fmt.Errorf("处理模板和数据时出错: %w", err)
 	}
 
-	accessToken, _ := GetAccessToken("/api/orgCenter/alerts")
+	accessToken, _ := GetAccessToken("/api/orgCenter/alerts", "POST")
 	alertGroupUrl := Url("/api/orgCenter/alerts", nil, "")
 	template := getTemplate(name, alertItemL1, alertItemL2NoProd, alertItemL2)
 
@@ -98,4 +114,8 @@ func getTemplate(name string, alertItemL1, alertItemL2NoProd, alertItemL2 map[st
 	default:
 		return nil
 	}
+}
+
+func UpdateAlarm() {
+
 }

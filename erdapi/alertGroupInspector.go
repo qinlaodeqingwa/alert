@@ -53,12 +53,12 @@ func GetAlarmID() []Alert {
 			alarms = append(alarms, Alert{ID: item.ID, Name: item.Name})
 		}
 	}
-	//fmt.Println("the arm is ", alarms)
+
 	return alarms
 }
 
 func RetrieveAlert() ([]byte, error) {
-	accessToken, err := GetAccessToken("/api/orgCenter/alerts")
+	accessToken, err := GetAccessToken("/api/orgCenter/alerts", "GET")
 	if err != nil {
 		fmt.Println("Error on GetAccessToken:", err)
 	}
