@@ -12,8 +12,8 @@ type notifybody struct {
 }
 
 func CreateNotifyGroupsL1() (int, error) {
-	notifyGroupUrl := "http://erda-server.default.svc.cluster.local:9529/api/notify-groups"
-	//notifyGroupUrl := Url("/api/notify-groups", nil, "")
+	//notifyGroupUrl := "http://erda-server.default.svc.cluster.local:9529/api/notify-groups"
+	notifyGroupUrl := Url("/api/notify-groups", nil, "")
 
 	//args := os.Args
 	//if len(args) != 2 {
