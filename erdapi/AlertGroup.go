@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 )
 
 type notifyGroup struct {
@@ -74,13 +73,7 @@ func CheckNotifyGroupExistence() (int, int, error) {
 }
 
 func RetrieveAlertGroups() ([]byte, error) {
-
-	accessToken, err := GetAccessToken("/api/notify-groups", "GET")
-	if err != nil {
-		fmt.Println("Error on GetAccessToken:", err)
-	}
-	os.Setenv("Token", accessToken)
-
+	accessToken, _ := GetAccessToken("/api/notify-groups", "GET")
 	alertGroupUrl := "https://dice.erda.cloud/api/hyjtsc/notify-groups?scopeType=org&scopeId=100812&pageNo=1&pageSize=10"
 	//alertGroupUrl := Url("/api/orgname/notify-groups", url.Values{
 	//	"scopeType": {"org"},

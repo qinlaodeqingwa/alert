@@ -7,6 +7,12 @@ import (
 	"strings"
 )
 
+const (
+	Group1 = "Erda-L1-prod(勿删)"
+	Group2 = "Erda-L2-noprod(勿删)"
+	Group3 = "Erda-L2(勿删)"
+)
+
 var nameToGroupID = map[string]*int{
 	"Erda-L1-prod(勿删)":   &GroupIds.GroupL1,
 	"Erda-L2(勿删)":        &GroupIds.GroupL2,
@@ -19,10 +25,7 @@ type GetAlarmInfo func() []Alert
 func HandleClusterAndAlertGroups(getClusters GetClustersFunc, Alarm GetAlarmInfo) {
 	clusters := getClusters()
 	alertGroups := Alarm()
-	requiredAlertGroups := []string{"Erda-L1-prod(勿删)", "Erda-L2-noprod(勿删)", "Erda-L2(勿删)"}
-
-	fmt.Printf("当前有 %d 个集群\n", len(clusters))
-	fmt.Printf("当前有 %d 个告警组\n", len(alertGroups))
+	requiredAlertGroups := []string{Group1, Group2, Group3}
 
 	switch len(clusters) {
 	case 1:
@@ -44,10 +47,9 @@ func HandleClusterAndAlertGroups(getClusters GetClustersFunc, Alarm GetAlarmInfo
 		fallthrough
 	default:
 		if len(alertGroups) < 3 {
-			fmt.Println("未满足要求，需要创建缺失的告警组 ")
 			for _, group := range requiredAlertGroups {
 				if !Contains(alertGroups, group) {
-					fmt.Println("2需要创建的告警组为 ", group)
+					fmt.Println("未满足要求，需要创建缺失的告警组 ", group)
 					err := CreateAlarmGroup(group)
 					if err != nil {
 						fmt.Println("创建失败", err)
@@ -69,23 +71,19 @@ func Contains(slice []Alert, item string) bool {
 			return true
 		}
 	}
-	//_, ok := set[item]
 	return false
 }
 
 func CreateAlarmGroup(name string) error {
-	var notifyid int
-	fmt.Println("Before check name is ", *nameToGroupID[name])
+	var notifyId int
 	if groupID, ok := nameToGroupID[name]; ok {
-		notifyid = *groupID
-		log.Println(notifyid)
+		notifyId = *groupID
+		log.Println(notifyId)
 	}
-	//alertItemL1, alertItemL2NoProd, alertItemL2, err := ProcessTemplateAndData(name, notifyid)
 
 	accessToken, _ := GetAccessToken("/api/orgCenter/alerts", "POST")
-	alertGroupUrl := "https://dice.erda.cloud/api/hyjtsc/orgCenter/alerts"
-	//alertGroupUrl := Url("/api/orgCenter/alerts", nil, "")
-	template, _ := getTemplate("", name, notifyid)
+	alertGroupUrl := Url("/api/orgCenter/alerts", nil, "")
+	template, _ := getTemplate("hyjtsc-prod", name, notifyId)
 
 	if template != nil {
 		_, err := DoRequest(Request{
@@ -127,9 +125,9 @@ func UpdateAlarm(num int, alarm []Alert) {
 	var notifyid int
 
 	if num == 1 {
-		alartname = []string{"Erda-L1-prod(勿删)", "Erda-L2(勿删)"}
+		alartname = []string{Group1, Group2}
 	} else if num > 1 {
-		alartname = []string{"Erda-L1-prod(勿删)", "Erda-L2-noprod(勿删)", "Erda-L2(勿删)"}
+		alartname = []string{Group1, Group2, Group3}
 	}
 	for _, targetName := range alartname {
 		for _, alert := range alarm {
@@ -148,6 +146,7 @@ func UpdateAlarm(num int, alarm []Alert) {
 func PutAlarm(template map[string]interface{}, alarmId int) {
 	alarmID := strconv.Itoa(alarmId)
 	u := Url("/api/orgCenter/alerts/alarmId", nil, alarmID)
+	fmt.Println(u)
 	accesstoken, _ := GetAccessToken("/api/OrgCenter/alerts/<id>", "PUT")
 	_, err := DoRequest(Request{
 		Method: "PUT",
