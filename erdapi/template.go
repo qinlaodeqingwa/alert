@@ -8,10 +8,10 @@ import (
 	"os"
 )
 
-func ProcessTemplateAndData(alarmclusterName string, groupId int) (map[string]interface{}, map[string]interface{}, map[string]interface{}, error) {
+func ProcessTemplateAndData(orgname, targetname string, groupId int) (map[string]interface{}, map[string]interface{}, map[string]interface{}, error) {
 
 	templateL1 := map[string]interface{}{
-		"name":   "Erda-L1(勿删)",
+		"name":   targetname,
 		"domain": os.Getenv("Domain"),
 		"notifies": []map[string]interface{}{
 			{
@@ -29,7 +29,7 @@ func ProcessTemplateAndData(alarmclusterName string, groupId int) (map[string]in
 			{
 				"condition": "cluster_name",
 				"operator":  "in",
-				"values":    alarmclusterName,
+				"values":    orgname,
 			},
 		},
 		"rules": []map[string]interface{}{
@@ -260,12 +260,12 @@ func ProcessTemplateAndData(alarmclusterName string, groupId int) (map[string]in
 		},
 	}
 	templateL2Noprod := map[string]interface{}{
-		"name":   "Erda_L2-noprod",
+		"name":   targetname,
 		"domain": "https://dice.erda.cloud",
 		"notifies": []map[string]interface{}{
 			{
 				"silence": map[string]interface{}{
-					"value":  15,
+					"value":  30,
 					"unit":   "minutes",
 					"policy": "doubled",
 				},
@@ -279,7 +279,7 @@ func ProcessTemplateAndData(alarmclusterName string, groupId int) (map[string]in
 			{
 				"condition": "cluster_name",
 				"operator":  "in",
-				"values":    "hyjtsc-prod",
+				"values":    orgname,
 			},
 		},
 		"rules": []map[string]interface{}{
@@ -510,7 +510,7 @@ func ProcessTemplateAndData(alarmclusterName string, groupId int) (map[string]in
 		},
 	}
 	templateL2 := map[string]interface{}{
-		"name":   "Erda-L2",
+		"name":   targetname,
 		"domain": "https://dice.erda.cloud",
 		"notifies": []map[string]interface{}{
 			{
@@ -529,7 +529,7 @@ func ProcessTemplateAndData(alarmclusterName string, groupId int) (map[string]in
 			{
 				"condition": "cluster_name",
 				"operator":  "in",
-				"values":    alarmclusterName,
+				"values":    orgname,
 			},
 		},
 		"rules": []map[string]interface{}{

@@ -53,7 +53,7 @@ func GetAlarmID() []Alert {
 			alarms = append(alarms, Alert{ID: item.ID, Name: item.Name})
 		}
 	}
-
+	fmt.Println("the alarm id is", alarms)
 	return alarms
 }
 

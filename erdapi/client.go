@@ -92,7 +92,7 @@ func GetAccessToken(path, fangsh string) (string, error) {
 }
 
 func Url(p string, q url.Values, alarmId string) string {
-	BaseUrl := "https://dice.erda.cloud"
+	BaseUrl := "https://openapi.erda.cloud"
 	//BaseUrl := os.Getenv("OPENAPI_URL")
 	if BaseUrl == "" {
 		BaseUrl = "http://erda-server.default.svc.cluster.local:9529"

@@ -3,6 +3,7 @@ package erdapi
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 )
 
@@ -55,7 +56,7 @@ func HandleClusterAndAlertGroups(getClusters GetClustersFunc, Alarm GetAlarmInfo
 			}
 		} else {
 			fmt.Println("告警组数量满足要求，无需创建 可以选择更新了 ")
-			UpdateAlarm()
+			UpdateAlarm(len(alertGroups), alertGroups)
 		}
 	}
 }
@@ -77,15 +78,12 @@ func CreateAlarmGroup(name string) error {
 		notifyid = *groupID
 		log.Println(notifyid)
 	}
-	alertItemL1, alertItemL2NoProd, alertItemL2, err := ProcessTemplateAndData(name, notifyid)
-	if err != nil {
-		return fmt.Errorf("处理模板和数据时出错: %w", err)
-	}
+	//alertItemL1, alertItemL2NoProd, alertItemL2, err := ProcessTemplateAndData(name, notifyid)
 
 	accessToken, _ := GetAccessToken("/api/orgCenter/alerts", "POST")
 	alertGroupUrl := "https://dice.erda.cloud/api/hyjtsc/orgCenter/alerts"
 	//alertGroupUrl := Url("/api/orgCenter/alerts", nil, "")
-	template := getTemplate(name, alertItemL1, alertItemL2NoProd, alertItemL2)
+	template, _ := getTemplate("", name, notifyid)
 
 	if template != nil {
 		_, err := DoRequest(Request{
@@ -104,19 +102,58 @@ func CreateAlarmGroup(name string) error {
 	return nil
 }
 
-func getTemplate(name string, alertItemL1, alertItemL2NoProd, alertItemL2 map[string]interface{}) map[string]interface{} {
+func getTemplate(orgname, targetname string, notifyid int) (map[string]interface{}, error) {
+	alertItemL1, alertItemL2NoProd, alertItemL2, err := ProcessTemplateAndData(orgname, targetname, notifyid)
+	if err != nil {
+		return nil, fmt.Errorf("处理模板和数据时出错: %w", err)
+	}
 	switch {
-	case strings.Contains(name, "L1"):
-		return alertItemL1
-	case strings.Contains(name, "L2-noprod"):
-		return alertItemL2NoProd
-	case strings.Contains(name, "L2"):
-		return alertItemL2
+	case strings.Contains(targetname, "L1"):
+		return alertItemL1, nil
+	case strings.Contains(targetname, "L2-noprod"):
+		return alertItemL2NoProd, nil
+	case strings.Contains(targetname, "L2"):
+		return alertItemL2, nil
 	default:
-		return nil
+		return nil, nil
 	}
 }
 
-func UpdateAlarm() {
+func UpdateAlarm(num int, alarm []Alert) {
+	fmt.Println("更新操作")
+	var alartname []string
+	var notifyid int
 
+	if num == 1 {
+		alartname = []string{"Erda-L1-prod(勿删)", "Erda-L2(勿删)"}
+	} else if num > 1 {
+		alartname = []string{"Erda-L1-prod(勿删)", "Erda-L2-noprod(勿删)", "Erda-L2(勿删)"}
+	}
+	for _, targetName := range alartname {
+		for _, alert := range alarm {
+			if alert.Name == targetName {
+				if groupID, ok := nameToGroupID[targetName]; ok {
+					notifyid = *groupID
+				}
+				orgname, _ := GetAlarmClusterName(alert.ID)
+				template, _ := getTemplate(orgname, targetName, notifyid)
+				PutAlarm(template, alert.ID)
+			}
+		}
+	}
+}
+
+func PutAlarm(template map[string]interface{}, alarmId int) {
+	alarmID := strconv.Itoa(alarmId)
+	u := Url("/api/orgCenter/alerts/alarmId", nil, alarmID)
+	accesstoken, _ := GetAccessToken("/api/OrgCenter/alerts/<id>", "PUT")
+	_, err := DoRequest(Request{
+		Method: "PUT",
+		URL:    u,
+		Header: map[string]string{"Content-Type": "application/json", "Authorization": "Bearer " + accesstoken},
+		Body:   template,
+	})
+	if err != nil {
+		fmt.Println("出错了", err)
+	}
 }
