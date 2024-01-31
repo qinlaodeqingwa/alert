@@ -63,12 +63,14 @@ func HandleClusterAndAlertGroups(getClusters GetClustersFunc, Alarm GetAlarmInfo
 
 // Contains 判断切片中是否包含某个字符串的函数
 func Contains(slice []Alert, item string) bool {
-	set := make(map[string]struct{}, len(slice))
+	//set := make(map[string]struct{}, len(slice))
 	for _, s := range slice {
-		set[s.Name] = struct{}{}
+		if s.Name == item {
+			return true
+		}
 	}
-	_, ok := set[item]
-	return ok
+	//_, ok := set[item]
+	return false
 }
 
 func CreateAlarmGroup(name string) error {
